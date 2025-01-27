@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atlas Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    :root {
+        --primary: #FF0000;
+        --primary-dark: #CC0000;
+        --accent: #FF3333;
+        --text: #FFFFFF;
+        --text-light: #CCCCCC;
+        --background: #000000;
+        --surface: #1A1A1A;
+        --error: #FF3333;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+        background: var(--background); 
+        min-height: 100vh; 
+        color: var(--text); 
+        font-family: 'Segoe UI', sans-serif; 
+        line-height: 1.6; 
+    }
+    #loginScreen { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: var(--background); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        z-index: 1000; 
+    }
+    .login-container { 
+        background: var(--surface); 
+        padding: 40px; 
+        border-radius: 15px; 
+        box-shadow: 0 4px 6px rgba(255,0,0,0.2); 
+        border: 1px solid var(--primary); 
+        width: 90%; 
+        max-width: 400px; 
+    }
+    .login-logo { 
+        text-align: center; 
+        margin-bottom: 30px; 
+    }
+    .login-logo h2 { 
+        color: var(--text); 
+        font-size: 24px; 
+        margin-bottom: 10px; 
+        font-weight: bold; 
+    }
+    .input-group { 
+        margin-bottom: 20px; 
+    }
+    .input-group label { 
+        display: block; 
+        margin-bottom: 8px; 
+        color: var(--text-light); 
+    }
+    .input-group input { 
+        width: 100%; 
+        padding: 12px; 
+        background: var(--background); 
+        border: 1px solid var(--primary-dark); 
+        border-radius: 8px; 
+        color: var(--text); 
+        font-size: 16px; 
+    }
+    .input-group input:focus { 
+        outline: none; 
+        border-color: var(--primary); 
+    }
+    button { 
+        width: 100%; 
+        padding: 14px; 
+        background: var(--primary); 
+        color: var(--text); 
+        border: none; 
+        border-radius: 8px; 
+        font-size: 16px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: background 0.3s; 
+    }
+    button:hover { 
+        background: var(--primary-dark); 
+    }
+    .error-message { 
+        color: var(--error); 
+        text-align: center; 
+        margin-top: 10px; 
+        font-size: 14px; 
+        display: none; 
+    }
+    .auth-toggle { 
+        text-align: center; 
+        margin-top: 20px; 
+        color: var(--text-light); 
+    }
+    .auth-toggle span { 
+        color: var(--primary); 
+        cursor: pointer; 
+    }
+    .auth-toggle span:hover { 
+        text-decoration: underline; 
+    }
+    #mainContent { 
+        display: none; 
+        padding-top: 60px; 
+    }
+    .menu-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+        gap: 20px; 
+        padding: 20px; 
+        max-width: 1200px; 
+        margin: 0 auto; 
+    }
+    .menu-item { 
+        background: var(--surface); 
+        padding: 20px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        transition: transform 0.3s, box-shadow 0.3s; 
+        position: relative; 
+        border: 1px solid var(--primary-dark); 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        text-align: center; 
+    }
+    .menu-item:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 5px 15px rgba(255,0,0,0.3); 
+    }
+    .menu-item.locked { 
+        opacity: 0.7; 
+    }
+    .menu-item i { 
+        font-size: 32px; 
+        color: var(--primary); 
+        margin-bottom: 15px; 
+    }
+    .menu-item h3 { 
+        margin: 10px 0; 
+        color: var(--text); 
+        font-size: 18px; 
+        font-weight: bold; 
+    }
+    .menu-item p { 
+        color: var(--text-light); 
+        font-size: 14px; 
+        margin-top: 5px; 
+    }
+    .badge { 
+        position: absolute; 
+        top: 10px; 
+        right: 10px; 
+        background: var(--primary); 
+        color: var(--text); 
+        padding: 4px 8px; 
+        border-radius: 4px; 
+        font-size: 12px; 
+        font-weight: 600; 
+        text-transform: uppercase; 
+    }
+    @media (max-width: 768px) { 
+        .menu-grid { 
+            grid-template-columns: 1fr; 
+            padding: 10px; 
+        } 
+        .menu-item { 
+            padding: 15px; 
+        } 
+        .menu-item i { 
+            font-size: 24px; 
+        } 
+        .menu-item h3 { 
+            font-size: 16px; 
+        } 
+    } 
+    .top-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: var(--surface);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--primary);
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .logo-container h2 {
+        color: var(--text);
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0;
+    }
+    .triangle-logo {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 25px solid var(--primary);
+        transform: rotate(0deg);
+        transition: transform 0.3s;
+    }
+    .triangle-logo:hover {
+        transform: rotate(180deg);
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .user-info button {
+        padding: 8px 16px;
+        font-size: 14px;
+        width: auto;
+    }
+    .user-info #adminButton {
+        background: var(--accent);
+    }
+    .user-info #userBadge {
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        color: #000;
+        font-weight: bold;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
+    }
+</style>
+</head>
+<body>
+<div id="loginScreen">
+    <div class="login-container">
+        <div class="login-logo">
+            <div class="triangle-logo"></div>
+            <h2>ATLAS COMMUNITY</h2>
+        </div>
+        <form id="loginForm" style="display: block;">
+            <div class="input-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="login-button">Entrar</button>
+            <div id="errorMessage" class="error-message"></div>
+            <div class="auth-toggle">
+                Não tem uma conta? <span onclick="toggleForms('register')">Criar conta</span>
+            </div>
+        </form>
+        <form id="registerForm" style="display: none;">
+            <div class="input-group">
+                <label for="regUsername">Usuário</label>
+                <input type="text" id="regUsername" required>
+            </div>
+            <div class="input-group">
+                <label for="regPassword">Senha</label>
+                <input type="password" id="regPassword" required>
+                <div class="password-requirements">A senha deve ter no mínimo 6 caracteres</div>
+            </div>
+            <div class="input-group">
+                <label for="confirmPassword">Confirmar Senha</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <button type="submit" class="login-button">Criar Conta</button>
+            <div id="registerError" class="error-message"></div>
+            <div class="auth-toggle">
+                Já tem uma conta? <span onclick="toggleForms('login')">Fazer login</span>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="mainContent">
+    <div class="top-banner">
+        <div class="logo-container">
+            <div class="triangle-logo"></div>
+            <h2>ATLAS COMMUNITY</h2>
+        </div>
+        <div class="user-info">
+            <span id="userBadge" class="badge" style="display: none;">PRO</span>
+            <button id="adminButton" onclick="openAdminPanel()" style="display: none;">Admin</button>
+            <button class="logout-button" onclick="logout()">Sair</button>
+        </div>
+    </div>
+    <main class="content">
+        <div class="menu-grid">
+            <div class="menu-item" onclick="window.location.href='https://t.me/CODIGOBETA_BOT'">
+                <i class="fas fa-robot"></i>
+                <h3>BOT TELEGRAM</h3>
+                <p>Acesse nosso bot no Telegram</p>
+            </div>
+            <div class="menu-item" onclick="window.location.href='https://www.instagram.com/hernandes_mentor?igsh=aTM5bjB2NnYzZ2Zh&utm_source=qr'">
+                <i class="fas fa-trophy"></i>
+                <h3>SORTEIO DE BANCAS</h3>
+                <p>Participe dos nossos sorteios</p>
+            </div>
+            <div class="menu-item locked" onclick="handleLockedItem(this)">
+                <i class="fas fa-puzzle-piece"></i>
+                <h3>EXTENSÕES ROLETA</h3>
+                <p>Acesse extensões e recursos adicionais para a Roleta</p>
+                <span class="badge">Premium</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='https://t.me/CODIGOBETA_BOT'">
+                <i class="fas fa-graduation-cap"></i>
+                <h3>GALERIA DE AULAS</h3>
+                <p>Acesse nossa biblioteca de aulas gravadas</p>
+            </div>
+            <div class="menu-item locked" onclick="handleLockedItem(this)">
+                <i class="fas fa-chart-line"></i>
+                <h3>ANÁLISE DE PADRÕES</h3>
+                <p>Ferramenta avançada para análise de padrões</p>
+                <span class="badge">Premium</span>
+            </div>
+            <div class="menu-item locked" onclick="handleLockedItem(this)">
+                <i class="fas fa-calculator"></i>
+                <h3>CALCULADORA DE ODDS</h3>
+                <p>Calcule probabilidades e retornos</p>
+                <span class="badge">Premium</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='https://t.me/CODIGOBETA_BOT'">
+                <i class="fas fa-users"></i>
+                <h3>COMUNIDADE VIP</h3>
+                <p>Entre para nossa comunidade exclusiva</p>
+            </div>
+            <div class="menu-item locked" onclick="handleLockedItem(this)">
+                <i class="fas fa-signal"></i>
+                <h3>SINAIS PREMIUM</h3>
+                <p>Receba sinais exclusivos em tempo real</p>
+                <span class="badge">Premium</span>
+            </div>
+        </div>
+    </main>
+</div>
+<div id="adminPanel" class="admin-panel">
+    <h2>Painel Administrativo</h2>
+    <button onclick="closeAdminPanel()" class="close-admin">Fechar</button>
+    <div class="admin-stats">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <h3>Total de Usuários</h3>
+            <p id="totalUsers">0</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-crown"></i>
+            <h3>Usuários PRO</h3>
+            <p id="proUsers">0</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-ban"></i>
+            <h3>Usuários Bloqueados</h3>
+            <p id="blockedUsers">0</p>
+        </div>
+    </div>
+    <div class="admin-actions">
+        <button onclick="updateAllStats()"><i class="fas fa-sync"></i> Atualizar Dados</button>
+        <button onclick="exportUserData()"><i class="fas fa-download"></i> Exportar Dados</button>
+    </div>
+    <div class="table-container">
+        <div class="table-header">
+            <h3>Gerenciamento de Usuários</h3>
+            <div class="table-actions">
+                <input type="text" id="userSearch" placeholder="Buscar usuário..." onkeyup="filterUsers()">
+                <select id="userFilter" onchange="filterUsers()">
+                    <option value="all">Todos</option>
+                    <option value="pro">PRO</option>
+                    <option value="blocked">Bloqueados</option>
+                </select>
+            </div>
+        </div>
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>Status</th>
+                    <th>PRO</th>
+                    <th>Bloqueado</th>
+                    <th>Último Login</th>
+                    <th>Data de Registro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+        </table>
+    </div>
+</div>
+<script>
+let users = {};
+
+function updateStats() {
+    const totalUsers = Object.keys(users).length;
+    const proUsers = Object.values(users).filter(user => user.isPro).length;
+    const blockedUsers = Object.values(users).filter(user => user.isBlocked).length;
+    
+    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('proUsers').textContent = proUsers;
+    document.getElementById('blockedUsers').textContent = blockedUsers;
+}
+
+function filterUsers() {
+    const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+    const filterType = document.getElementById('userFilter').value;
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    
+    Object.entries(users)
+        .filter(([username, user]) => {
+            const matchesSearch = username.toLowerCase().includes(searchTerm);
+            const matchesFilter = filterType === 'all' ||
+                (filterType === 'pro' && user.isPro) ||
+                (filterType === 'blocked' && user.isBlocked);
+            return matchesSearch && matchesFilter;
+        })
+        .forEach(([username, user]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${username}</td>
+                <td>${user.role}</td>
+                <td>${user.isPro ? 'Sim' : 'Não'}</td>
+                <td>${user.isBlocked ? 'Sim' : 'Não'}</td>
+                <td>${user.lastLogin || 'Nunca'}</td>
+                <td>${user.createdAt || 'N/A'}</td>
+                <td>
+                    ${username !== 'admin' ? `
+                        <button onclick="toggleUserPro('${username}')">${user.isPro ? 'Remover PRO' : 'Tornar PRO'}</button>
+                        <button onclick="toggleUserBlocked('${username}')">${user.isBlocked ? 'Desbloquear' : 'Bloquear'}</button>
+                        <button onclick="deleteUser('${username}')">Excluir</button>
+                    ` : ''}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+}
+
+function exportUserData() {
+    const data = Object.entries(users).map(([username, user]) => ({
+        username,
+        role: user.role,
+        isPro: user.isPro,
+        isBlocked: user.isBlocked,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt
+    }));
+    
+    const csv = [
+        ['Usuário', 'Status', 'PRO', 'Bloqueado', 'Último Login', 'Data de Registro'],
+        ...data.map(row => [
+            row.username,
+            row.role,
+            row.isPro ? 'Sim' : 'Não',
+            row.isBlocked ? 'Sim' : 'Não',
+            row.lastLogin || 'Nunca',
+            row.createdAt || 'N/A'
+        ])
+    ].map(row => row.join(','));
+    
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'usuarios.csv';
+    link.click();
+}
+
+function updateAllStats() {
+    loadUsersFromServer().then(() => {
+        updateStats();
+        filterUsers();
+    });
+}
+
+function handleLockedItem(element) {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+    
+    const user = users[username];
+    if (!user) return;
+    
+    if (user.isPro || user.role === 'admin') {
+        window.location.href = 'https://t.me/CODIGOBETA_BOT';
+    } else {
+        alert('Este recurso é exclusivo para usuários PRO');
+    }
+}
+
+function updateUserBadge() {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+    
+    const user = users[username];
+    if (!user) return;
+    
+    const badge = document.getElementById('userBadge');
+    if (user.isPro || user.role === 'admin') {
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+async function saveUsersToServer() {
+    try {
+        const usersData = JSON.stringify(users);
+        const response = await fetch('https://api.jsonbin.io/v3/b/65c0f8c41f5677401f3f1c0c', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': '$2b$10$Hs0jPEZwY5fBOX9LVqxK4.5ZJ0H8VgRVxOyH0.Kw4H8Z9Q9Q9Q9Q9'
+            },
+            body: usersData
+        });
+        if (!response.ok) throw new Error('Falha ao salvar usuários');
+        updateStats();
+    } catch (error) {
+        console.error('Erro ao salvar usuários:', error);
+    }
+}
+
+async function loadUsersFromServer() {
+    try {
+        const response = await fetch('https://api.jsonbin.io/v3/b/65c0f8c41f5677401f3f1c0c/latest', {
+            headers: {
+                'X-Master-Key': '$2b$10$Hs0jPEZwY5fBOX9LVqxK4.5ZJ0H8VgRVxOyH0.Kw4H8Z9Q9Q9Q9Q9'
+            }
+        });
+        if (!response.ok) throw new Error('Falha ao carregar usuários');
+        const data = await response.json();
+        users = data.record || {};
+        users.admin = {
+            password: 'admin123',
+            role: 'admin',
+            lastLogin: users.admin?.lastLogin || null,
+            isPro: true,
+            isBlocked: false,
+            createdAt: users.admin?.createdAt || new Date().toLocaleString()
+        };
+        updateStats();
+        filterUsers();
+        updateUserBadge();
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        users = {
+            'admin': {
+                password: 'admin123',
+                role: 'admin',
+                lastLogin: null,
+                isPro: true,
+                isBlocked: false,
+                createdAt: new Date().toLocaleString()
+            }
+        };
+    }
+}
+
+function toggleUserPro(username) {
+    if (users[username] && username !== 'admin') {
+        users[username].isPro = !users[username].isPro;
+        saveUsersToServer();
+        filterUsers();
+        updateUserBadge();
+    }
+}
+
+function toggleUserBlocked(username) {
+    if (users[username] && username !== 'admin') {
+        users[username].isBlocked = !users[username].isBlocked;
+        saveUsersToServer();
+        filterUsers();
+        
+        if (users[username].isBlocked) {
+            const currentUser = localStorage.getItem('username');
+            if (currentUser === username) {
+                logout();
+            }
+        }
+    }
+}
+
+function deleteUser(username) {
+    if (username === 'admin') return;
+    
+    if (users[username]) {
+        delete users[username];
+        saveUsersToServer();
+        filterUsers();
+        
+        const currentUser = localStorage.getItem('username');
+        if (currentUser === username) {
+            logout();
+        }
+    }
+}
+
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('username');
+    location.reload();
+}
+
+function openAdminPanel() {
+    document.getElementById('adminPanel').style.display = 'block';
+    updateStats();
+    filterUsers();
+}
+
+function closeAdminPanel() {
+    document.getElementById('adminPanel').style.display = 'none';
+}
+
+function toggleForms(form) {
+    document.getElementById('loginForm').style.display = form === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = form === 'register' ? 'block' : 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+    document.getElementById('registerError').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadUsersFromServer();
+    setInterval(loadUsersFromServer, 30000);
+    
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+        const username = localStorage.getItem('username');
+        if (username === 'admin' || (users[username] && !users[username].isBlocked)) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('adminButton').style.display = 
+                (username === 'admin' || users[username]?.role === 'admin') ? 'inline-block' : 'none';
+            updateUserBadge();
+        } else {
+            logout();
+        }
+    }
+});
+
+document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (username === 'admin' && password === 'admin123') {
+        users.admin.lastLogin = new Date().toLocaleString();
+        await saveUsersToServer();
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', 'admin');
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('adminButton').style.display = 'inline-block';
+        updateUserBadge();
+        return;
+    }
+    
+    if (users[username] && users[username].password === password) {
+        if (users[username].isBlocked) {
+            document.getElementById('errorMessage').textContent = 'Sua conta está bloqueada';
+            document.getElementById('errorMessage').style.display = 'block';
+            return;
+        }
+        
+        users[username].lastLogin = new Date().toLocaleString();
+        await saveUsersToServer();
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', username);
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('adminButton').style.display = 
+            users[username].role === 'admin' ? 'inline-block' : 'none';
+        updateUserBadge();
+    } else {
+        document.getElementById('errorMessage').textContent = 'Usuário ou senha incorretos';
+        document.getElementById('errorMessage').style.display = 'block';
+    }
+});
+
+document.getElementById('registerForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const username = document.getElementById('regUsername').value;
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        document.getElementById('registerError').textContent = 'As senhas não coincidem';
+        document.getElementById('registerError').style.display = 'block';
+        return;
+    }
+    
+    if (password.length < 6) {
+        document.getElementById('registerError').textContent = 'A senha deve ter no mínimo 6 caracteres';
+        document.getElementById('registerError').style.display = 'block';
+        return;
+    }
+    
+    if (users[username]) {
+        document.getElementById('registerError').textContent = 'Usuário já existe';
+        document.getElementById('registerError').style.display = 'block';
+        return;
+    }
+    
+    users[username] = {
+        password: password,
+        role: 'user',
+        isPro: false,
+        isBlocked: false,
+        createdAt: new Date().toLocaleString()
+    };
+    
+    await saveUsersToServer();
+    toggleForms('login');
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = password;
+});</script>
+</body>
+</html>
